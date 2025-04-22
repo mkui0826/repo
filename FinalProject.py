@@ -20,15 +20,6 @@ st.title("Air Quality Dashboard")
 # Load data
 df = pd.read_csv("air_quality_index.csv")
 
-# Country filter (line 51)
-country = st.selectbox(
-    "Select a Country",
-    sorted(df["Country"].dropna().astype(str).unique())
-)
-
-# Filter by country
-country_df = df[df["Country"] == country]
-
 # Function to load and clean data
 @st.cache_data
 def load_data():
