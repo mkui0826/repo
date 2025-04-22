@@ -15,48 +15,40 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-st.title("Air Quality Dashboard")
-
-# Load data
-df = pd.read_csv("air_quality_index.csv")
-
-# Function to load and clean data
+# Load and clean data
 @st.cache_data
 def load_data():
     df = pd.read_csv("air_quality_index.csv")
     df.columns = df.columns.str.strip()
-
-    # Rename lat/lng columns
     df.rename(columns={"lat": "Latitude", "lng": "Longitude"}, inplace=True)
-
-    # Drop rows with missing key data
     df.dropna(subset=["AQI Value", "Latitude", "Longitude"], inplace=True)
-
-    # Standardize types
     df["AQI Value"] = pd.to_numeric(df["AQI Value"], errors="coerce")
     df["City"] = df["City"].str.title()
     df["Country"] = df["Country"].str.title()
-
     return df
 
-# --- Main Streamlit App ---
-def main():
-    df = load_data()
+# Helper function
+def describe_city(city, df):
+    city_data = df[df["City"] == city]
+    return city_data["AQI Value"].min(), city_data["AQI Value"].max()
 
+# Main App
+def main():
     st.title("World Air Quality Explorer")
+    df = load_data()
 
     # Filter: Country
     country = st.selectbox(
-        "Select a Country", 
-        sorted(df["Country"].dropna().astype(str).unique()),
+        "Select a Country",
+        sorted(df["Country"].dropna().unique()),
         key="country_select"
     )
     country_df = df[df["Country"] == country]
 
     # Filter: City
     city = st.selectbox(
-        "Select a City", 
-        sorted(country_df["City"].dropna().astype(str).unique()),
+        "Select a City",
+        sorted(country_df["City"].dropna().unique()),
         key="city_select"
     )
     city_df = country_df[country_df["City"] == city]
@@ -64,7 +56,10 @@ def main():
     # Filter: AQI range
     aqi_min = int(city_df["AQI Value"].min())
     aqi_max = int(city_df["AQI Value"].max())
-    aqi_range = st.slider("Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max), key="aqi_slider")
+    aqi_range = st.slider(
+        "Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max),
+        key="aqi_slider"
+    )
     filtered_df = city_df[
         (city_df["AQI Value"] >= aqi_range[0]) &
         (city_df["AQI Value"] <= aqi_range[1])
@@ -104,7 +99,7 @@ def main():
     filtered_df["AQI Rating"] = np.where(
         filtered_df["AQI Value"] < 50, "Good",
         np.where(filtered_df["AQI Value"] < 100, "Moderate",
-                    np.where(filtered_df["AQI Value"] < 150, "Unhealthy", "Very Unhealthy"))
+                 np.where(filtered_df["AQI Value"] < 150, "Unhealthy", "Very Unhealthy"))
     )
 
     # Sample rows with labels
@@ -112,6 +107,7 @@ def main():
     for _, row in filtered_df.head(3).iterrows():
         st.write(f"{row['City']} - AQI {row['AQI Value']} ({row['AQI Rating']})")
 
+# App Entry Point
 if __name__ == "__main__":
     main()
-     
+    
