@@ -26,13 +26,8 @@ def load_data():
     df["Country"] = df["Country"].str.title()
     return df
 
-def describe_city(city, df):
-    city_data = df[df["City"] == city]
-    return city_data["AQI Value"].min(), city_data["AQI Value"].max()
-
 def main():
     df = load_data()
-
     st.title("World Air Quality Explorer")
 
     # Country filter
@@ -54,13 +49,9 @@ def main():
     # AQI Range filter
     aqi_min = int(country_df["AQI Value"].min())
     aqi_max = int(country_df["AQI Value"].max())
-    print(city_df["AQI Value"])
-    print(aqi_min)
-    print(aqi_max)
     aqi_range = st.slider(
         "Select AQI Range", aqi_min, aqi_max, aqi_min
     )
-
 
     filtered_df = city_df[
         (city_df["AQI Value"] >= -99999999999) &
@@ -86,12 +77,14 @@ def main():
     ax2.set_ylabel("Average AQI")
     st.pyplot(fig2)
 
-    # AQI Summary
-    st.subheader(f"AQI Summary for {city}")
-    min_aqi, max_aqi = describe_city(city, country_df)
+    # AQI Summary for Country
+    st.subheader(f"AQI Summary for {country}")
+    min_aqi = country_df["AQI Value"].min()
+    max_aqi = country_df["AQI Value"].max()
+    avg_aqi = country_df["AQI Value"].mean()
     st.markdown(f"- Minimum AQI: **{min_aqi}**")
     st.markdown(f"- Maximum AQI: **{max_aqi}**")
-    st.markdown(f"- Average AQI: **{round(city_df['AQI Value'].mean(), 2)}**")
+    st.markdown(f"- Average AQI: **{round(avg_aqi, 2)}**")
 
     # Top AQI Records
     st.subheader("Top 5 AQI Readings in City")
@@ -110,4 +103,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
