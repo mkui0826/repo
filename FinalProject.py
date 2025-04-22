@@ -15,6 +15,20 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+st.title("Air Quality Dashboard")
+
+# Load data
+df = pd.read_csv("GlobalAirQuality.csv")
+
+# Country filter (line 51)
+country = st.selectbox(
+    "Select a Country",
+    sorted(df["Country"].dropna().astype(str).unique())
+)
+
+# Filter by country
+country_df = df[df["Country"] == country]
+
 # Function to load and clean data
 @st.cache_data
 def load_data():
