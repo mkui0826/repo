@@ -45,13 +45,19 @@ def main():
 
     st.title("World Air Quality Explorer")
 
-    # Filter: Country
-    country = st.selectbox("Select a Country", sorted(df["Country"].unique()))
-    country_df = df[df["Country"] == country]
+# Filter: Country
+country = st.selectbox(
+    "Select a Country",
+    sorted(df["Country"].dropna().unique())
+)
+country_df = df[df["Country"] == country]
 
-    # Filter: City
-    city = st.selectbox("Select a City", sorted(country_df["City"].unique()))
-    city_df = country_df[country_df["City"] == city]
+# Filter: City
+city = st.selectbox(
+    "Select a City",
+    sorted(country_df["City"].dropna().unique())
+)
+city_df = country_df[country_df["City"] == city]
 
     # Filter: AQI range
     aqi_min = int(city_df["AQI Value"].min())
