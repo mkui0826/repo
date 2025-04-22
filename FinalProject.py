@@ -20,12 +20,17 @@ import matplotlib.pyplot as plt
 def load_data():
      df = pd.read_csv("air_quality_index.csv")
      df.columns = df.columns.str.strip()
+     st.write("Columns in your CSV file:", df.columns.tolist())
      df.rename(columns={"Lat": "Latitude", "Lng": "Longitude", "date": "Date"}, inplace=True)
      df.dropna(subset=["AQI Value"], inplace=True)
      df["AQI Value"] = pd.to_numeric(df["AQI Value"], errors="coerce")
      df["City"] = df["City"].str.title()
      df["Country"] = df["Country"].str.title()
-     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+     if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+     else:
+        st.error("'Date' column not found. Please check your CSV.")
+        st.stop()
      return df
 
 # Function to describe city AQI
