@@ -63,13 +63,13 @@ city_df = country_df[country_df["City"] == city]
 aqi_min = int(city_df["AQI Value"].min())
 aqi_max = int(city_df["AQI Value"].max())
 aqi_range = st.slider("Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max))
-    filtered_df = city_df[
-        (city_df["AQI Value"] >= aqi_range[0]) &
-        (city_df["AQI Value"] <= aqi_range[1])
-    ]
+filtered_df = city_df[
+    (city_df["AQI Value"] >= aqi_range[0]) &
+    (city_df["AQI Value"] <= aqi_range[1])
+]
 
     # Chart 1: AQI Category counts in selected city
-    st.subheader(f"📊 AQI Category Breakdown - {city}")
+    st.subheader(f"AQI Category Breakdown - {city}")
     category_counts = filtered_df["AQI Category"].value_counts()
     fig1, ax1 = plt.subplots()
     ax1.bar(category_counts.index, category_counts.values, color="skyblue")
