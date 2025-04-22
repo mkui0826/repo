@@ -18,9 +18,11 @@ import matplotlib.pyplot as plt
 # Function to load and clean data
 @st.cache_data
 def load_data():
-    df = pd.read_csv("air_quality_index.csv")
+     df = pd.read_csv("air_quality_index.csv")
     df.columns = df.columns.str.strip()
+
     df.rename(columns={"Lat": "Latitude", "Lng": "Longitude", "date": "Date"}, inplace=True)
+
     df.dropna(subset=["AQI Value"], inplace=True)
     df["AQI Value"] = pd.to_numeric(df["AQI Value"], errors="coerce")
     df["City"] = df["City"].str.title()
