@@ -61,12 +61,10 @@ def main():
     # Chart 2
     st.subheader(f"Average AQI by City in {country}")
     avg_aqi_by_city = country_df.groupby("City")["AQI Value"].mean().sort_values()
-
-    fig2, ax2 = plt.subplots(figsize=(20, 6))
+    fig2, ax2 = plt.subplots(figsize=(10, 4))
     ax2.bar(avg_aqi_by_city.index, avg_aqi_by_city.values, color="coral")
-    ax2.set_xticklabels(avg_aqi_by_city.index, rotation=45, ha='right', fontsize=8)
+    ax2.set_xticklabels(avg_aqi_by_city.index, rotation=45, ha='right')
     ax2.set_ylabel("Average AQI")
-    ax2.set_title(f"Average AQI by City in {country}")
     st.pyplot(fig2)
 
     # AQI Summary for Country
