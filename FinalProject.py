@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 st.title("Air Quality Dashboard")
 
 # Load data
-df = pd.read_csv("GlobalAirQuality.csv")
+df = pd.read_csv("air_quality_index.csv")
 
 # Country filter (line 51)
 country = st.selectbox(
