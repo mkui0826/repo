@@ -18,111 +18,92 @@ import matplotlib.pyplot as plt
 # Function to load and clean data
 @st.cache_data
 def load_data():
-     df = pd.read_csv("air_quality_index.csv")
-     df.columns = df.columns.str.strip()
-     st.write("Columns in your CSV file:", df.columns.tolist())
-     df.rename(columns={"Lat": "Latitude", "Lng": "Longitude", "date": "Date"}, inplace=True)
-     df.dropna(subset=["AQI Value"], inplace=True)
-     df["AQI Value"] = pd.to_numeric(df["AQI Value"], errors="coerce")
-     df["City"] = df["City"].str.title()
-     df["Country"] = df["Country"].str.title()
-     if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-     else:
-        st.error("'Date' column not found. Please check your CSV.")
-        st.stop()
-     return df
+    df = pd.read_csv("air_quality_index.csv")
+    df.columns = df.columns.str.strip()
 
-# Function to describe city AQI
+    # Rename lat/lng columns
+    df.rename(columns={"lat": "Latitude", "lng": "Longitude"}, inplace=True)
+
+    # Drop rows with missing key data
+    df.dropna(subset=["AQI Value", "Latitude", "Longitude"], inplace=True)
+
+    # Standardize types
+    df["AQI Value"] = pd.to_numeric(df["AQI Value"], errors="coerce")
+    df["City"] = df["City"].str.title()
+    df["Country"] = df["Country"].str.title()
+
+    return df
+
+# --- Define a helper function ---
 def describe_city(city, df):
     city_data = df[df["City"] == city]
     return city_data["AQI Value"].min(), city_data["AQI Value"].max()
 
+# --- Main Streamlit App ---
 def main():
     df = load_data()
 
-    st.title("🌎 Global Air Quality Explorer")
+    st.title("World Air Quality Explorer")
 
-    # Country selection
-    selected_country = st.selectbox("Select a country", sorted(df["Country"].unique()))
-    country_df = df[df["Country"] == selected_country]
+    # Filter: Country
+    country = st.selectbox("Select a Country", sorted(df["Country"].unique()))
+    country_df = df[df["Country"] == country]
 
-    # City selection
-    selected_city = st.selectbox("Select a city", sorted(country_df["City"].unique()))
-    city_df = country_df[country_df["City"] == selected_city]
+    # Filter: City
+    city = st.selectbox("Select a City", sorted(country_df["City"].unique()))
+    city_df = country_df[country_df["City"] == city]
 
-    # AQI range selection
+    # Filter: AQI range
     aqi_min = int(city_df["AQI Value"].min())
     aqi_max = int(city_df["AQI Value"].max())
-    aqi_range = st.slider("Select AQI range", aqi_min, aqi_max, (aqi_min, aqi_max))
-
+    aqi_range = st.slider("Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max))
     filtered_df = city_df[
         (city_df["AQI Value"] >= aqi_range[0]) &
         (city_df["AQI Value"] <= aqi_range[1])
     ]
 
-    # Line chart: AQI over time
-    st.subheader("📈 AQI Over Time")
+    # Chart 1: AQI Category counts in selected city
+    st.subheader(f"📊 AQI Category Breakdown - {city}")
+    category_counts = filtered_df["AQI Category"].value_counts()
     fig1, ax1 = plt.subplots()
-    ax1.plot(filtered_df["Date"], filtered_df["AQI Value"], marker='o', linestyle='-')
-    ax1.set_title(f"AQI in {selected_city}")
-    ax1.set_xlabel("Date")
-    ax1.set_ylabel("AQI Value")
-    ax1.grid(True)
+    ax1.bar(category_counts.index, category_counts.values, color="skyblue")
+    ax1.set_xlabel("AQI Category")
+    ax1.set_ylabel("Count")
+    ax1.set_title(f"AQI Categories in {city}")
     st.pyplot(fig1)
 
-    # Bar chart: Average AQI by city
-    st.subheader("📊 Average AQI by City")
-    avg_aqi = country_df.groupby("City")["AQI Value"].mean().sort_values()
-    fig2, ax2 = plt.subplots(figsize=(10, 5))
-    ax2.bar(avg_aqi.index, avg_aqi.values, color="skyblue")
-    ax2.set_xticklabels(avg_aqi.index, rotation=45, ha="right")
+    # Chart 2: Average AQI by city in selected country
+    st.subheader(f"Average AQI by City in {country}")
+    avg_aqi_by_city = country_df.groupby("City")["AQI Value"].mean().sort_values()
+    fig2, ax2 = plt.subplots(figsize=(10, 4))
+    ax2.bar(avg_aqi_by_city.index, avg_aqi_by_city.values, color="coral")
+    ax2.set_xticklabels(avg_aqi_by_city.index, rotation=45, ha='right')
     ax2.set_ylabel("Average AQI")
-    ax2.set_title(f"Average AQI in {selected_country}")
     st.pyplot(fig2)
 
-    # Display AQI range for selected city
-    min_aqi, max_aqi = describe_city(selected_city, df=country_df)
-    st.write(f"**{selected_city} AQI Range**: Min = {min_aqi}, Max = {max_aqi}")
+    # AQI Summary
+    st.subheader(f"AQI Summary for {city}")
+    min_aqi, max_aqi = describe_city(city, country_df)
+    st.markdown(f"- Minimum AQI: **{min_aqi}**")
+    st.markdown(f"- Maximum AQI: **{max_aqi}**")
+    st.markdown(f"- Average AQI: **{round(city_df['AQI Value'].mean(), 2)}**")
 
-    # Display filtered data
-    try:
-        st.write(filtered_df.head())
-    except Exception as e:
-        st.error(f"Data error: {e}")
+    # Top 5 highest AQI values
+    st.subheader("Top 5 AQI Readings in City")
+    st.dataframe(city_df.sort_values("AQI Value", ascending=False).head(5))
 
-    # AQI dictionary
-    aqi_dict = {city: round(val, 2) for city, val in avg_aqi.items()}
-    st.write("City AQI dictionary:", aqi_dict)
-
-    # Top 5 AQI readings
-    sorted_df = filtered_df.sort_values("AQI Value", ascending=False)
-    st.subheader("🔥 Top 5 AQI Readings")
-    st.dataframe(sorted_df[["Date", "City", "AQI Value"]].head(5))
-
-    # Add AQI category
-    filtered_df["AQI Category"] = np.where(
+    # Add AQI rating labels (for logic practice)
+    filtered_df["AQI Rating"] = np.where(
         filtered_df["AQI Value"] < 50, "Good",
         np.where(filtered_df["AQI Value"] < 100, "Moderate",
                  np.where(filtered_df["AQI Value"] < 150, "Unhealthy", "Very Unhealthy"))
     )
 
-    # Sample records
-    st.subheader("📋 Sample Records")
+    # Sample rows with labels
+    st.subheader("Sample Classified Records")
     for _, row in filtered_df.head(3).iterrows():
-        st.write(f"{row['City']} on {row['Date'].date()} → AQI {row['AQI Value']} ({row['AQI Category']})")
-
-    # Custom style
-    st.markdown("""
-    <style>
-    body {
-        background-color: #f5f9ff;
-    }
-    h1, h2, h3 {
-        color: #2c3e50;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        st.write(f"{row['City']} - AQI {row['AQI Value']} ({row['AQI Rating']})")
 
 if __name__ == "__main__":
     main()
+     
