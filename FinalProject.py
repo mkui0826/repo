@@ -37,7 +37,7 @@ def main():
 
     # Country filter
     country = st.selectbox(
-        "Select a Country", 
+        "Select a Country",
         sorted(df["Country"].dropna().astype(str).unique()),
         key="country_select"
     )
@@ -45,22 +45,26 @@ def main():
 
     # City filter
     city = st.selectbox(
-        "Select a City", 
+        "Select a City",
         sorted(country_df["City"].dropna().astype(str).unique()),
         key="city_select"
     )
     city_df = country_df[country_df["City"] == city]
 
     # AQI Range filter
-    aqi_min = int(city_df["AQI Value"].min())
-    aqi_max = int(city_df["AQI Value"].max())
+    aqi_min = int(country_df["AQI Value"].min())
+    aqi_max = int(country_df["AQI Value"].max())
+    print(city_df["AQI Value"])
+    print(aqi_min)
+    print(aqi_max)
     aqi_range = st.slider(
         "Select AQI Range", aqi_min, aqi_max, aqi_min
     )
 
+
     filtered_df = city_df[
-        (city_df["AQI Value"] >= aqi_range[0]) & 
-        (city_df["AQI Value"] <= aqi_range[1])
+        (city_df["AQI Value"] >= -99999999999) &
+        (city_df["AQI Value"] <= aqi_range)
     ]
 
     # Chart 1
