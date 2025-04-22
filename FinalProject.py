@@ -55,7 +55,7 @@ def main():
     aqi_min = int(city_df["AQI Value"].min())
     aqi_max = int(city_df["AQI Value"].max())
     aqi_range = st.slider(
-        "Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max), key="aqi_slider"
+        "Select AQI Range", aqi_min, aqi_max, aqi_min
     )
 
     filtered_df = city_df[
