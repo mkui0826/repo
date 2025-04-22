@@ -47,22 +47,22 @@ def main():
 
 # Filter: Country
 country = st.selectbox(
-    "Select a Country",
-    sorted(df["Country"].dropna().unique())
+    "Select a Country", 
+    sorted(df["Country"].dropna().astype(str).unique())
 )
 country_df = df[df["Country"] == country]
 
 # Filter: City
 city = st.selectbox(
-    "Select a City",
-    sorted(country_df["City"].dropna().unique())
+    "Select a City", 
+    sorted(country_df["City"].dropna().astype(str).unique())
 )
 city_df = country_df[country_df["City"] == city]
 
-    # Filter: AQI range
-    aqi_min = int(city_df["AQI Value"].min())
-    aqi_max = int(city_df["AQI Value"].max())
-    aqi_range = st.slider("Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max))
+# Filter: AQI range
+aqi_min = int(city_df["AQI Value"].min())
+aqi_max = int(city_df["AQI Value"].max())
+aqi_range = st.slider("Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max))
     filtered_df = city_df[
         (city_df["AQI Value"] >= aqi_range[0]) &
         (city_df["AQI Value"] <= aqi_range[1])
