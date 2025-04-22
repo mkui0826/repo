@@ -15,7 +15,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Load and clean data
 @st.cache_data
 def load_data():
     df = pd.read_csv("air_quality_index.csv")
@@ -27,45 +26,44 @@ def load_data():
     df["Country"] = df["Country"].str.title()
     return df
 
-# Helper function
 def describe_city(city, df):
     city_data = df[df["City"] == city]
     return city_data["AQI Value"].min(), city_data["AQI Value"].max()
 
-# Main App
 def main():
-    st.title("World Air Quality Explorer")
     df = load_data()
 
-    # Filter: Country
+    st.title("World Air Quality Explorer")
+
+    # Country filter
     country = st.selectbox(
-        "Select a Country",
-        sorted(df["Country"].dropna().unique()),
+        "Select a Country", 
+        sorted(df["Country"].dropna().astype(str).unique()),
         key="country_select"
     )
     country_df = df[df["Country"] == country]
 
-    # Filter: City
+    # City filter
     city = st.selectbox(
-        "Select a City",
-        sorted(country_df["City"].dropna().unique()),
+        "Select a City", 
+        sorted(country_df["City"].dropna().astype(str).unique()),
         key="city_select"
     )
     city_df = country_df[country_df["City"] == city]
 
-    # Filter: AQI range
+    # AQI Range filter
     aqi_min = int(city_df["AQI Value"].min())
     aqi_max = int(city_df["AQI Value"].max())
     aqi_range = st.slider(
-        "Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max),
-        key="aqi_slider"
+        "Select AQI Range", aqi_min, aqi_max, (aqi_min, aqi_max), key="aqi_slider"
     )
+
     filtered_df = city_df[
-        (city_df["AQI Value"] >= aqi_range[0]) &
+        (city_df["AQI Value"] >= aqi_range[0]) & 
         (city_df["AQI Value"] <= aqi_range[1])
     ]
 
-    # Chart 1: AQI Category counts in selected city
+    # Chart 1
     st.subheader(f"AQI Category Breakdown - {city}")
     category_counts = filtered_df["AQI Category"].value_counts()
     fig1, ax1 = plt.subplots()
@@ -75,7 +73,7 @@ def main():
     ax1.set_title(f"AQI Categories in {city}")
     st.pyplot(fig1)
 
-    # Chart 2: Average AQI by city in selected country
+    # Chart 2
     st.subheader(f"Average AQI by City in {country}")
     avg_aqi_by_city = country_df.groupby("City")["AQI Value"].mean().sort_values()
     fig2, ax2 = plt.subplots(figsize=(10, 4))
@@ -91,23 +89,20 @@ def main():
     st.markdown(f"- Maximum AQI: **{max_aqi}**")
     st.markdown(f"- Average AQI: **{round(city_df['AQI Value'].mean(), 2)}**")
 
-    # Top 5 highest AQI values
+    # Top AQI Records
     st.subheader("Top 5 AQI Readings in City")
     st.dataframe(city_df.sort_values("AQI Value", ascending=False).head(5))
 
-    # Add AQI rating labels
+    # Add AQI rating
     filtered_df["AQI Rating"] = np.where(
         filtered_df["AQI Value"] < 50, "Good",
         np.where(filtered_df["AQI Value"] < 100, "Moderate",
                  np.where(filtered_df["AQI Value"] < 150, "Unhealthy", "Very Unhealthy"))
     )
 
-    # Sample rows with labels
     st.subheader("Sample Classified Records")
     for _, row in filtered_df.head(3).iterrows():
         st.write(f"{row['City']} - AQI {row['AQI Value']} ({row['AQI Rating']})")
 
-# App Entry Point
 if __name__ == "__main__":
     main()
-    
