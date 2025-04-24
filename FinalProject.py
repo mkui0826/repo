@@ -53,7 +53,7 @@ def main():
     fig1, ax1 = plt.subplots()
     ax1.bar(category_counts.index, category_counts.values, color="skyblue")
     ax1.set_xlabel("AQI Category")
-    ax1.set_ylabel("Count")
+    ax1.set_ylabel("AQI Readings")
     ax1.set_title(f"AQI Categories in {city}")
     st.pyplot(fig1)
 
