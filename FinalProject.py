@@ -48,12 +48,18 @@ def main():
     city_df = country_df[country_df["City"] == city].copy()
 
     # Chart 1: AQI Category counts
-    st.subheader(f"AQI Category Breakdown - {country}")
-    category_counts = country_df["AQI Category"].value_counts().reindex([
-        "Good", "Moderate", "Unhealthy", "Very Unhealthy"
-    ], fill_value=0)
+    st.subheader(f"AQI Category Breakdown - {country} (By Number of Cities)")
 
-    # Define color mapping based on air quality severity
+    # Compute dominant AQI Category per city
+    city_categories = country_df.groupby("City")["AQI Category"] \
+        .agg(lambda x: x.mode().iloc[0] if not x.mode().empty else "Unknown")
+
+    # Count how many cities fall into each AQI category
+    category_counts = city_categories.value_counts().reindex(
+        ["Good", "Moderate", "Unhealthy", "Very Unhealthy"], fill_value=0
+    )
+
+    # Define color mapping
     color_map = {
         "Good": "#66bb6a",           # green
         "Moderate": "#ffa726",       # orange
@@ -62,12 +68,12 @@ def main():
     }
     bar_colors = [color_map.get(cat, "gray") for cat in category_counts.index]
 
-    # Horizontal bar chart
+    # Plot the horizontal bar chart
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.barh(category_counts.index, category_counts.values, color=bar_colors)
-    ax.set_xlabel("Number of AQI Readings")
-    ax.set_title(f"AQI Quality Distribution in {country}")
-    ax.invert_yaxis()  # Highest quality on top
+    ax.set_xlabel("Number of Cities")
+    ax.set_title(f"Cities by Dominant AQI Category in {country}")
+    ax.invert_yaxis()
     st.pyplot(fig)
 
     # Chart 2: Average AQI by city
