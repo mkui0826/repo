@@ -48,13 +48,13 @@ def main():
     city_df = country_df[country_df["City"] == city].copy()
 
     # Chart 1: AQI Category counts
-    st.subheader(f"AQI Category Breakdown - {city}")
-    category_counts = city_df["AQI Category"].value_counts()
+    st.subheader(f"AQI Category Breakdown - {country}")
+    category_counts = country_df["AQI Category"].value_counts()
     fig1, ax1 = plt.subplots()
     ax1.bar(category_counts.index, category_counts.values, color="skyblue")
     ax1.set_xlabel("AQI Category")
     ax1.set_ylabel("AQI Readings")
-    ax1.set_title(f"AQI Categories in {city}")
+    ax1.set_title(f"AQI Categories in {country}")
     st.pyplot(fig1)
 
     # Chart 2: Average AQI by city
